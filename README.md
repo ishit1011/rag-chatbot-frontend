@@ -89,3 +89,19 @@ The frontend is a **React-based chat interface**. It authenticates users via Goo
 *   Better error handling for Gemini API overload (503s).
     
 *   Multi-device session sync once MySQL DB is added.
+
+  ### Redis TTL & Cache Warming Strategy
+------------------------------------------
+1. Session Messages (`<session_id> → messages[]`)  
+   - TTL: 24 hours (auto-clears inactive sessions).  
+   - On every new message, TTL is refreshed.
+
+2. Email ↔ Session Mapping (`<email> → <session_id>`)  
+   - No TTL (persists until logout).  
+   - Ensures stable mapping for users.
+
+3. Cache Warming  
+   - On login, preload last 10 messages into Redis from DB.  
+   - Background cron job refreshes popular queries every 6h.  
+   - Frequently asked queries (e.g., trending news) cached for 1 hour.
+
